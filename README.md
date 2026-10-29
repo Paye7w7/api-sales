@@ -1,334 +1,97 @@
-# Instalación del Proyecto
+# API de Ventas – Laravel
 
-## Instalar las dependencias de Composer
+**Desarrollador:** Manuel Paye  
+**Rama:** `manuel.paye`
+
+## Descripción
+
+API REST desarrollada en Laravel para gestionar productos y ventas, con validación de stock, registro de detalles y cálculo de descuentos por producto.
+
+## Funcionalidades desarrolladas
+
+- Implementación de endpoints para registrar, consultar y eliminar ventas.
+- Validación de productos existentes y cantidades solicitadas.
+- Control y actualización automática del stock disponible.
+- Registro de ventas con múltiples productos mediante transacciones.
+- Cálculo de subtotales y total de ventas.
+- Implementación de descuentos opcionales de 0 % a 10 % por producto.
+- Registro de descuentos individuales y descuento total.
+- Incorporación de una migración para almacenar los campos de descuentos.
+- Eliminación lógica de ventas.
+
+## Instalación y ejecución
+
+**1. Clonar el repositorio**
+
+```bash
+git clone -b manuel.paye https://github.com/Paye7w7/api-sales.git
+cd api-sales
+```
+
+**2. Instalar dependencias**
 
 ```bash
 composer install
 ```
 
-## Crear el archivo de configuración
+**3. Crear el archivo `.env`**
 
-```bash
-cp .env.example .env
+En Windows (CMD):
+
+```cmd
+copy .env.example .env
 ```
 
-## Configurar el archivo `.env`
+**4. Configurar la base de datos**
 
-Completa los datos necesarios, como:
+Crear una base de datos en MySQL y configurar el archivo `.env` con sus credenciales.
 
-- Nombre de la aplicación
-- Conexión a la base de datos
-- Usuario y contraseña de la base de datos
-- Otras variables de entorno requeridas
+Ejemplo:
 
-## Generar la clave de la aplicación
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=api_sales
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+**5. Generar la clave de aplicación**
 
 ```bash
 php artisan key:generate
 ```
 
-## Ejecutar las migraciones
+**6. Ejecutar migraciones y seeders**
 
 ```bash
-php artisan migrate
+php artisan migrate --seed
 ```
 
-# Prueba Técnica – API REST de Ventas en Laravel
+**7. Iniciar la API**
 
-## Objetivo
-
-Desarrollar una API REST en Laravel para gestionar un flujo básico de ventas.
-
-La prueba evaluará:
-
-- Uso de relaciones entre modelos.
-- Validación de datos.
-- Manejo de transacciones.
-- Control de stock.
-- Lógica de negocio.
-- Respuestas JSON y códigos HTTP.
-- Pruebas mediante Postman u otro cliente HTTP.
-
----
-
-## Estado inicial del proyecto
-
-El proyecto ya incluye:
-
-- Laravel configurado como API.
-- Migraciones listas.
-- Seeders con productos cargados.
-- Modelos base: `Product`, `Sale` y `SaleDetail`.
-
----
-
-## Fuera de alcance
-
-No se debe implementar mantenimiento de productos.
-
-Por lo tanto, no corresponde:
-
-- Crear productos.
-- Modificar productos.
-- Eliminar productos.
-
-Solo se deben utilizar los productos existentes.
-
----
-
-## Requerimientos
-
-### 1. Listar productos
-
-**Endpoint**
-
-```http
-GET /api/products
+```bash
+php artisan serve
 ```
 
-Debe retornar:
+La API estará disponible por defecto en:
 
-- `id`
-- `name`
-- `price`
-- `stock`
+`http://127.0.0.1:8000`
 
-**Ejemplo**
+## Endpoints
 
-```json
-[
-  {
-    "id": 1,
-    "name": "Laptop Lenovo",
-    "price": 7500,
-    "stock": 10
-  }
-]
-```
+| Método | Ruta | Función |
+|---|---|---|
+| GET | `/api/products` | Listar productos |
+| GET | `/api/sales` | Listar ventas |
+| POST | `/api/sales` | Registrar ventas |
+| DELETE | `/api/sales/{id}` | Eliminar venta |
 
----
+## Integración con Angular
 
-### 2. Crear una venta
+El frontend consume esta API mediante solicitudes HTTP para consultar productos, registrar ventas y mostrar los resultados.
 
-Usar el usuario estático:
+Repositorio del frontend:
 
-```text
-user_id = 1
-```
-
-**Endpoint**
-
-```http
-POST /api/sales
-```
-
-**Request**
-
-```json
-{
-  "user_id": 1,
-  "items": [
-    {
-      "product_id": 1,
-      "quantity": 2
-    },
-    {
-      "product_id": 3,
-      "quantity": 1
-    }
-  ]
-}
-```
-
-La operación debe:
-
-1. Validar que exista al menos un producto.
-2. Validar que cada producto exista.
-3. Validar que la cantidad sea mayor que cero.
-4. Verificar que exista stock suficiente.
-5. Crear la venta.
-6. Crear los detalles de la venta.
-7. Calcular el subtotal de cada producto.
-8. Calcular el total de la venta.
-9. Descontar el stock vendido.
-
-Los precios deben obtenerse desde la base de datos y no desde el request.
-
-La creación de la venta, sus detalles y el descuento de stock deben ejecutarse dentro de una transacción.
-
-**Cálculos**
-
-```text
-subtotal = price × quantity
-total = suma de subtotales
-```
-
-**Ejemplo de respuesta**
-
-```json
-{
-  "message": "Venta creada correctamente",
-  "sale_id": 1,
-  "total": 16500
-}
-```
-
-Si no existe stock suficiente, la venta no debe registrarse parcialmente.
-
----
-
-### 3. Listar ventas
-
-**Endpoint**
-
-```http
-GET /api/sales
-```
-
-Debe retornar:
-
-- `id`
-- `total`
-- `created_at`
-- Detalle de productos vendidos
-
-**Ejemplo**
-
-```json
-[
-  {
-    "id": 1,
-    "total": 16500,
-    "created_at": "2026-01-21",
-    "details": [
-      {
-        "product": "Laptop Lenovo",
-        "quantity": 2,
-        "subtotal": 15000
-      }
-    ]
-  }
-]
-```
-
----
-
-### 4. Eliminar una venta
-
-**Endpoint**
-
-```http
-DELETE /api/sales/{id}
-```
-
-Debe eliminar la venta seleccionada.
-
-**Ejemplo de respuesta**
-
-```json
-{
-  "message": "Venta eliminada correctamente"
-}
-```
-
-Si la venta no existe, debe devolverse una respuesta de error adecuada.
-
----
-
-## Reglas de negocio
-
-- Una venta debe contener al menos un producto.
-- No se permiten cantidades iguales o menores que cero.
-- No se puede vender más stock del disponible.
-- El precio debe obtenerse desde el producto registrado.
-- El subtotal se calcula por producto.
-- El total corresponde a la suma de los subtotales.
-- La creación debe ejecutarse dentro de una transacción.
-- Ante cualquier error, no deben quedar datos parciales.
-- Las respuestas deben estar en formato JSON.
-
----
-
-## Resultado esperado
-
-Al finalizar la prueba, la API debe permitir:
-
-- Consultar productos existentes.
-- Registrar una venta con sus detalles.
-- Calcular subtotales y total.
-- Descontar stock.
-- Consultar ventas.
-- Eliminar ventas.
-
----
-
-## Características Opcionales
-
-### Descuento por producto
-
-**Esta funcionalidad es opcional y no es requerida para completar la prueba.**
-
-Se puede implementar un sistema de descuentos aplicados a nivel de producto dentro de una venta.
-
-**Cambios en el request de crear venta**
-
-```json
-{
-  "user_id": 1,
-  "items": [
-    {
-      "product_id": 1,
-      "quantity": 2,
-      "discount_percent": 10
-    },
-    {
-      "product_id": 3,
-      "quantity": 1,
-      "discount_percent": 5
-    }
-  ]
-}
-```
-
-**Cálculos con descuento**
-
-```text
-subtotal = price × quantity
-discount_amount = subtotal × (discount_percent / 100)
-subtotal_with_discount = subtotal - discount_amount
-total = suma de subtotales_with_discount
-```
-
-**Cambios en la respuesta de listar ventas**
-
-```json
-[
-  {
-    "id": 1,
-    "total": 15000,
-    "total_discount": 1500,
-    "created_at": "2026-01-21",
-    "details": [
-      {
-        "product": "Laptop Lenovo",
-        "quantity": 2,
-        "subtotal": 15000,
-        "discount_percent": 10,
-        "discount_amount": 1500,
-        "subtotal_with_discount": 13500
-      }
-    ]
-  }
-]
-```
-
-**Migración requerida**
-
-Se debe crear las migraciones requeridas para aplicar los requerimientos solicitados
-
-**Reglas de negocio adicionales (si se implementa)**
-
-- El descuento es opcional (por defecto 0%).
-- El descuento debe ser un valor entre 0 y 10.
-- El cálculo del descuento debe realizarse dentro de la transacción.
-- El total debe incluir la suma de los subtotales con descuento.
+https://github.com/Paye7w7/app-sales/tree/manuel.paye
